@@ -1,9 +1,12 @@
 import streamlit as st
-import streamlit.components.v1 as stc
-
 import pandas as pd
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+st.set_page_config(
+    page_title="Movie Recommendation",
+    page_icon="🎥"
+)
 
 
 def load_data(data_name):
@@ -23,7 +26,7 @@ def load_data(data_name):
 
     return data
 
-def get_recommendation(title,cosine_sim,data):
+def get_recommendation(title, cosine_sim, data):
 
     indices = pd.Series(data.index, index= data['title'])
 
@@ -39,47 +42,51 @@ def get_recommendation(title,cosine_sim,data):
 
     return data['title'].iloc[movie_indices]
 
-def search_term_if_not_found(term,df):
-	result_df = df[df['title'].str.contains(term)]
-	return result_df
-
-RESULT_TEMP = """
-<div style="width:90%;height:100%;margin:1px;padding:5px;position:relative;border-radius:5px;border-bottom-right-radius: 60px;
-box-shadow:0 0 15px 5px #ccc; background-color: #a8f0c6;
-  border-left: 5px solid #6c6c6c;">
-<h4>{}</h4>
-<p style="color:blue;"><span style="color:black;">📈Score::</span>{}</p>
-<p style="color:blue;"><span style="color:black;">🔗</span><a href="{}",target="_blank">Link</a></p>
-<p style="color:blue;"><span style="color:black;">💲Price:</span>{}</p>
-<p style="color:blue;"><span style="color:black;">🧑‍🎓👨🏽‍🎓 Students:</span>{}</p>
-</div>
-"""
+def display(data1, data2):
+    k = 0
+    for indx, row in data1.iloc[data2.index].iterrows():
+        k = k + 1
+        with st.container():
+            st.markdown('{}. {}'.format(k,row["title"]))
+            c1, c2 = st.columns([1, 3])
+            with c1:
+                st.image(row["link_poster"], use_column_width = 'always')
+            with c2:
+                st.write(':scroll: Overview: {}'.format(row["overview"]))
+                st.write(':trophy: Certifacte: {} | :clock1: Time: {} | :date: Year: {}'.format(row["certificate"], row["runtime"], row["year"]))
+                st.write('Genre: {}'.format(row["genre"]))
+                st.write(':busts_in_silhouette: Casts: {}, {}, {}, {}'.format(row["star_1"], row["star_2"], row["star_3"], row["star_4"]))
+                st.write('Rating: {} :star:'.format(row["rating"]))
+                st.markdown('Link IMDB: {}'.format(row["link_imdb"]))
 
 def main():
     st.title("Movie Recommendatation system")
 
+    st.sidebar.success("Select a page under!")
+
     menu = ["Ranking","Overview","Feature"]
-    choice = st.sidebar.selectbox("Recommend Movies by",menu)
+    choice = st.sidebar.selectbox("Recommend by: ",menu)
 
     data = load_data("imdb_top_1000_movies.csv")
 
     if choice == "Ranking":
 
         st.subheader("TOP 10 MOVIES BY RANKING:")
-        index = data['rating'][:10].index
-        data.iloc[index]
-    
+        display(data, data['rating'][:10])
+        
     elif choice == "Overview":
 
         st.subheader("Recommend by Overview")
-        search_name = st.text_input("Search: ")
+
+        option = st.selectbox("Select Movie ", data['title'])
 
         if st.button("Recommend"):
+
+            search_name = option
 
             if search_name is not None:
 
                 try:
-
                     tfidf = TfidfVectorizer(stop_words='english')
 
                     tfidf_matrix = tfidf.fit_transform(data['overview'])
@@ -88,16 +95,11 @@ def main():
 
                     result = get_recommendation(search_name,cosine_sim,data)
 
-                except:
+                    display(data, result)
 
+                except:
                     result = "Not Found"
                     st.warning(result)
-                    st.info("Suggested Options include")
-
-                    result_data = search_term_if_not_found(search_name,data)
-                    st.dataframe(result_data)
-                
-            st.write(result)
         
 
     else:
@@ -106,14 +108,15 @@ def main():
 
         st.subheader("Recommend by Feature")
 
-        search_name = st.text_input("Search: ")
+        option = st.selectbox("Select Movie ", data['title'])
 
         if st.button("Recommend"):
+
+            search_name = option
 
             if search_name is not None:
 
                 try:
-
                     tfidf = TfidfVectorizer(stop_words='english')
 
                     tfidf_matrix = tfidf.fit_transform(data['feature'])
@@ -122,20 +125,14 @@ def main():
 
                     result_2 = get_recommendation(search_name,cosine_sim_2,data)
 
+                    display(data, result_2)
+                    
                 except:
-
                     result_2 = "Not Found"
                     st.warning(result_2)
-                    st.info("Suggested Options include")
-
-                    result_data = search_term_if_not_found(search_name,data)
-                    st.dataframe(result_data)
-                
+                    
             st.write(result_2)
+        
 
-    
-
-
-    
 if __name__ == '__main__':
     main()

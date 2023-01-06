@@ -60,7 +60,7 @@ def display(data1, data2):
                 st.markdown('Link IMDB: {}'.format(row["link_imdb"]))
 
 def main():
-    st.title("Movie Recommendatation system")
+    st.title("Movie Recommendation system")
 
     st.sidebar.success("Select a page under!")
 

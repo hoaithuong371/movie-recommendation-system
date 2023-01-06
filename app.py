@@ -130,8 +130,6 @@ def main():
                 except:
                     result_2 = "Not Found"
                     st.warning(result_2)
-                    
-            st.write(result_2)
         
 
 if __name__ == '__main__':

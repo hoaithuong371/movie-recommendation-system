@@ -12,17 +12,15 @@ st.set_page_config(
 def load_data(data_name):
     data = pd.read_csv(data_name)
 
-    data.isna().sum()
-
     data['certificate'].fillna('', inplace = True)
 
     data['meta_score'].fillna(0.0, inplace = True)
 
-    data['gross'].apply(lambda x: float(str(x).lstrip('$').rstrip('M')) if x is not None else x)
+    data['gross'] = data['gross'].apply(lambda x: float(str(x).lstrip('$').rstrip('M')) if x is not None else x)
 
     data['gross'].fillna(0.0, inplace = True)
 
-    data['year'].apply(lambda x: str(x).replace('(', '').replace(')', ''))
+    data['year'] = data['year'].apply(lambda x: str(x).replace('(', '').replace(')', ''))
 
     return data
 
